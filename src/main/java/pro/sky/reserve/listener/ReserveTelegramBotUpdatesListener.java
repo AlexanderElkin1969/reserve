@@ -185,6 +185,4 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
         telegramBotService.sendMessage(id, TEXT_GREETINGS_SHORT, ParseMode.Markdown);
     }
 
-
-
 }
