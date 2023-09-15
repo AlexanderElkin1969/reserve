@@ -25,7 +25,8 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
 
     private static final Long[] shelterVolunteersGroupChatId = new Long[2];
 
-    /**     matrix  -  "МАТРИЦА" показывающая историю или состояние запроса
+    /**
+     *      <u>matrix</u>  -  "МАТРИЦА" показывающая историю или состояние запроса
      *      ключем является ChatId пользователя, если этого ключа нет, то пользователь обратился впервые
      *      значение 0 по ключу означает, что пользователь находится в меню выбора НОМЕРА_ПРИЮТА
      *      значение 1(или 2) - пользователь выбрал приют кошек (или приют собак) и находится в меню выбора НОМЕРА_МЕНЮ
@@ -45,10 +46,10 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
     }
 
     @Value("${cat.shelter.volunteers.group.chat}")
-    Long catShelterVolunteersGroupChatId ;
+    private Long catShelterVolunteersGroupChatId ;
 
     @Value("${dog.shelter.volunteers.group.chat}")
-    Long dogShelterVolunteersGroupChatId ;
+    private Long dogShelterVolunteersGroupChatId ;
 
     @PostConstruct
     public void init() {
