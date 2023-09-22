@@ -1,6 +1,7 @@
 package pro.sky.reserve.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pro.sky.reserve.entity.DogReport;
 import pro.sky.reserve.repository.DogReportRepository;
 
@@ -16,16 +17,18 @@ public class DogReportService {
         this.dogReportRepository = dogReportRepository;
     }
 
-    public DogReport createDogReport(DogReport catReport) {
-        return dogReportRepository.save(catReport);
+    @Transactional
+    public void createDogReport(DogReport dogReport) {
+        dogReportRepository.save(dogReport);
     }
 
     public DogReport getDogReportById(Integer id) {
         return dogReportRepository.findById(id).get();
     }
 
-    public DogReport updateDogReport(DogReport catReport) {
-        return dogReportRepository.save(catReport);
+    @Transactional
+    public void updateDogReport(DogReport dogReport) {
+        dogReportRepository.save(dogReport);
     }
 
     public DogReport deleteDogReport(Integer id) {

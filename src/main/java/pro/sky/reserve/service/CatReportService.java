@@ -1,6 +1,7 @@
 package pro.sky.reserve.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pro.sky.reserve.entity.CatReport;
 import pro.sky.reserve.repository.CatReportRepository;
 
@@ -16,16 +17,18 @@ public class CatReportService {
         this.catReportRepository = catReportRepository;
     }
 
-    public CatReport createCatReport(CatReport catReport) {
-        return catReportRepository.save(catReport);
+    @Transactional
+    public void createCatReport(CatReport catReport) {
+        catReportRepository.save(catReport);
     }
 
     public CatReport getCatReportById(Integer id) {
         return catReportRepository.findById(id).get();
     }
 
-    public CatReport updateCatReport(CatReport catReport) {
-        return catReportRepository.save(catReport);
+    @Transactional
+    public void updateCatReport(CatReport catReport) {
+        catReportRepository.save(catReport);
     }
 
     public CatReport deleteCatReport(Integer id) {
