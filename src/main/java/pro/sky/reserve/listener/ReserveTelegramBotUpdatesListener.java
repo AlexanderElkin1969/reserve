@@ -2,15 +2,25 @@ package pro.sky.reserve.listener;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.request.GetFile;
+import com.pengrad.telegrambot.response.GetFileResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import pro.sky.reserve.entity.CatReport;
+import pro.sky.reserve.entity.DogReport;
+import pro.sky.reserve.service.CatReportService;
+import pro.sky.reserve.service.DogReportService;
 import pro.sky.reserve.service.ReserveTelegramBotService;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +49,16 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
 
     private final ReserveTelegramBotService telegramBotService;
 
+    private final CatReportService catReportService;
 
-    public ReserveTelegramBotUpdatesListener(TelegramBot telegramBot, ReserveTelegramBotService telegramBotService) {
+    private final DogReportService dogReportService;
+
+
+    public ReserveTelegramBotUpdatesListener(TelegramBot telegramBot, ReserveTelegramBotService telegramBotService, CatReportService catReportService, DogReportService dogReportService) {
         this.telegramBot = telegramBot;
         this.telegramBotService = telegramBotService;
+        this.catReportService = catReportService;
+        this.dogReportService = dogReportService;
     }
 
     @Value("${cat.shelter.volunteers.group.chat}")
@@ -146,9 +162,9 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                                             if (actionNumber == 1){
                                                 telegramBotService.sendMessage(id, REPORT_FORM, ParseMode.Markdown);
                                             }else if (actionNumber == 2) {
-
 //   если выбрана 2, то вызываем метод приема отчета
-
+                                                matrix.put(id, 200 + value);
+                                                telegramBotService.sendMessage(id, "Пришлите фото питомца с текстом отчета.", ParseMode.Markdown);
                                             }else {
                                                 returnToBeginning(id);
                                             }
@@ -156,6 +172,8 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                                         matrix.put(id, 0);
                                     }
                                 }
+                            }else {
+                                acceptReport(id, update);
                             }
 
                         }
@@ -171,6 +189,32 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
             logger.error(e.getMessage(), e);
         }
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
+    }
+
+    private void acceptReport(Long id, Update update){
+        PhotoSize[] photoSizes = update.message().photo();
+        if (photoSizes == null){
+            telegramBotService.sendMessage(id, "Пришлите фото питомца с текстом отчета.", ParseMode.Markdown);
+        }else {
+            PhotoSize photoSize = photoSizes[photoSizes.length - 1];
+            GetFileResponse getFileResponse = telegramBot.execute(new GetFile(photoSize.fileId()));
+            if (getFileResponse.isOk()){
+                byte[] data;
+                try {
+                    String extension = StringUtils.getFilenameExtension(getFileResponse.file().filePath());
+                    data = telegramBot.getFileContent(getFileResponse.file());
+                    if (matrix.get(id)%2 == 0){
+                        DogReport dogReport = new DogReport(id, LocalDate.now(), data, update.message().text());
+                        dogReportService.createDogReport(dogReport);
+                    }else {
+                        CatReport catReport = new CatReport(id, LocalDate.now(), data, update.message().text());
+                        catReportService.createCatReport(catReport);
+                    }
+                }catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        }
     }
 
     private void callVolunteer(Long id, int shelterNumber, String message){

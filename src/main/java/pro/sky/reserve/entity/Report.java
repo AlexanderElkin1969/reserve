@@ -11,7 +11,7 @@ public abstract class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
 
-    private int adoptionId;
+    private Long adoptionId;
 
     private LocalDate reportDate;
 
@@ -20,7 +20,7 @@ public abstract class Report {
 
     String text;
 
-    public Report( int adoptionId, LocalDate reportDate, byte[] photo, String text) {
+    public Report( Long adoptionId, LocalDate reportDate, byte[] photo, String text) {
         this.adoptionId = adoptionId;
         this.reportDate = reportDate;
         this.photo = photo;
@@ -34,7 +34,7 @@ public abstract class Report {
         return id;
     }
 
-    public int getAdoptionId() {
+    public Long getAdoptionId() {
         return adoptionId;
     }
 
@@ -54,7 +54,7 @@ public abstract class Report {
         this.id = id;
     }
 
-    public void setAdoptionId(int adoptionId) {
+    public void setAdoptionId(Long adoptionId) {
         this.adoptionId = adoptionId;
     }
 
