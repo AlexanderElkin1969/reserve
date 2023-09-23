@@ -7,6 +7,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.response.GetFileResponse;
+import liquibase.pro.packaged.O;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +22,7 @@ import pro.sky.reserve.service.ReserveTelegramBotService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static pro.sky.reserve.constants.BotConstants.*;
 
@@ -54,7 +52,10 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
     private final DogReportService dogReportService;
 
 
-    public ReserveTelegramBotUpdatesListener(TelegramBot telegramBot, ReserveTelegramBotService telegramBotService, CatReportService catReportService, DogReportService dogReportService) {
+    public ReserveTelegramBotUpdatesListener(TelegramBot telegramBot,
+                                             ReserveTelegramBotService telegramBotService,
+                                             CatReportService catReportService,
+                                             DogReportService dogReportService) {
         this.telegramBot = telegramBot;
         this.telegramBotService = telegramBotService;
         this.catReportService = catReportService;
@@ -82,59 +83,21 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                 if (update.message() != null) {
                     Long id = update.message().chat().id();
                     if (matrix.containsKey(id)) {
+                        int value = matrix.get(id);
                         String text = update.message().text();
                         if (Objects.nonNull(text)) {
                             char choice = text.charAt(0);
-                            int value = matrix.get(id);
                             if (value == 0) {
-//  выбор номера приюта
-                                switch (choice) {
-                                    case '1':
-                                        matrix.put(id, 1);
-                                        telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
-                                        break;
-                                    case '2':
-                                        matrix.put(id, 2);
-                                        telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
-                                        break;
-                                    default:
-                                        telegramBotService.sendMessage(id, TEXT_GREETINGS_SHORT, ParseMode.Markdown);
-                                }
+                                choosingShelter(id, choice);                    //  выбор номера приюта
                             } else if (value > 0 && value < 10) {
-//  выбор номера меню
-                                switch (choice) {
-                                    case '0':
-                                        matrix.put(id, 0);
-                                        callVolunteer(id, value, " просит связаться с ним.");
-                                        break;
-                                    case '1':
-                                        matrix.put(id, 10 + value);
-                                        telegramBotService.sendMessage(id, TEXT_ACTION_1, ParseMode.Markdown);
-                                        break;
-                                    case '2':
-                                        matrix.put(id, 20 + value);
-                                        telegramBotService.sendMessage(id, TEXT_ACTION_2, ParseMode.Markdown);
-                                        break;
-                                    case '3':
-                                        matrix.put(id, 30 + value);
-                                        telegramBotService.sendMessage(id, TEXT_ACTION_3, ParseMode.Markdown);
-                                        break;
-                                    case '#':
-                                        matrix.put(id, 0);
-                                        telegramBotService.sendMessage(id, TEXT_GREETINGS_SHORT, ParseMode.Markdown);
-                                        break;
-                                    default:
-                                        telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
-                                }
+                                choosingMenu(id, value, choice);                //  выбор номера меню
                             } else if (value > 10 && value < 100) {
-//  выбор номера действия
+                                                                                //  выбор номера действия
                                 int menuNumber = value / 10;
                                 int shelterNumber = value - 10 * menuNumber;
                                 if (choice == '0') {
-                                    matrix.put(id, 0);
                                     callVolunteer(id, shelterNumber, " просит связаться с ним.");
                                 } else if (choice == '@') {
-                                    matrix.put(id, 0);
                                     callVolunteer(id, shelterNumber, " передал: " + text.substring(1));
                                 } else if (choice == '#') {
                                     matrix.put(id, value % 10);
@@ -145,37 +108,21 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                                         returnToBeginning(id);
                                     } else {
                                         if (menuNumber == 1) {
-                                            if (actionNumber > 5) {
-                                                returnToBeginning(id);
-                                            } else {
-                                                if (shelterNumber == 1) {
-                                                    telegramBotService.sendMessage(id, CAT_SHELTER_INFORMATION_LIST.get(actionNumber - 1), ParseMode.Markdown);
-                                                } else {
-                                                    telegramBotService.sendMessage(id, DOG_SHELTER_INFORMATION_LIST.get(actionNumber - 1), ParseMode.Markdown);
-                                                }
-                                            }
+                                            giveInformation(id, shelterNumber, actionNumber);
                                         }
                                         if (menuNumber == 2) {
-                                            telegramBotService.sendMessage(id, RECOMMENDATIONS_LIST.get(actionNumber - 1), ParseMode.Markdown);
+                                            makeRecommendation(id, shelterNumber, actionNumber);
                                         }
                                         if (menuNumber == 3) {
-                                            if (actionNumber == 1) {
-                                                telegramBotService.sendMessage(id, REPORT_FORM, ParseMode.Markdown);
-                                            } else if (actionNumber == 2) {
-//   если выбрана 2, то вызываем метод приема отчета
-                                                matrix.put(id, 200 + value);
-                                                telegramBotService.sendMessage(id, "Пришлите фото питомца с текстом отчета.", ParseMode.Markdown);
-                                            } else {
-                                                returnToBeginning(id);
-                                            }
+                                            helpWithReport(id, value, actionNumber);
                                         }
-                                        matrix.put(id, 0);
                                     }
                                 }
                             } else {
-                                acceptReport(id, update);
+                                updateReport(id, text);
                             }
-
+                        }else if (value > 200){
+                            acceptReport(id, update);
                         }
                     } else {
                         if ((!catShelterVolunteersGroupChatId.equals(id)) && (!dogShelterVolunteersGroupChatId.equals(id))) {
@@ -191,31 +138,133 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
+    private void choosingShelter(Long id, char choice){
+        switch (choice) {
+            case '1':
+                matrix.put(id, 1);
+                telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
+                break;
+            case '2':
+                matrix.put(id, 2);
+                telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
+                break;
+            default:
+                telegramBotService.sendMessage(id, TEXT_GREETINGS_SHORT, ParseMode.Markdown);
+        }
+    }
+
+    private void choosingMenu(Long id, int value, char choice){
+        switch (choice) {
+            case '0':
+                callVolunteer(id, value, " просит связаться с ним.");
+                break;
+            case '1':
+                matrix.put(id, 10 + value);
+                telegramBotService.sendMessage(id, TEXT_ACTION_1, ParseMode.Markdown);
+                break;
+            case '2':
+                matrix.put(id, 20 + value);
+                telegramBotService.sendMessage(id, TEXT_ACTION_2, ParseMode.Markdown);
+                break;
+            case '3':
+                matrix.put(id, 30 + value);
+                telegramBotService.sendMessage(id, TEXT_ACTION_3, ParseMode.Markdown);
+                break;
+            case '#':
+                matrix.put(id, 0);
+                telegramBotService.sendMessage(id, TEXT_GREETINGS_SHORT, ParseMode.Markdown);
+                break;
+            default:
+                telegramBotService.sendMessage(id, TEXT_MENU, ParseMode.Markdown);
+        }
+    }
+
+    private void giveInformation(Long id, int shelterNumber, int actionNumber){
+        if (actionNumber > 5) {
+            returnToBeginning(id);
+        } else {
+            if (shelterNumber == 1) {
+                telegramBotService.sendMessage(id, CAT_SHELTER_INFORMATION_LIST.get(actionNumber - 1), ParseMode.Markdown);
+            } else {
+                telegramBotService.sendMessage(id, DOG_SHELTER_INFORMATION_LIST.get(actionNumber - 1), ParseMode.Markdown);
+            }
+        }
+        matrix.put(id, 0);
+    }
+
+    private void makeRecommendation(Long id, int shelterNumber, int actionNumber){
+        if (shelterNumber == 1 && actionNumber > 6){
+            telegramBotService.sendMessage(id, "Данные рекомендации не для кошек.", ParseMode.Markdown);
+        }else {
+            telegramBotService.sendMessage(id, RECOMMENDATIONS_LIST.get(actionNumber - 1), ParseMode.Markdown);
+        }
+        matrix.put(id, 0);
+    }
+
+    private void helpWithReport(Long id, int value, int actionNumber){
+        if (actionNumber == 1) {
+            matrix.put(id, 0);
+            telegramBotService.sendMessage(id, REPORT_FORM, ParseMode.Markdown);
+        } else if (actionNumber == 2) {
+            matrix.put(id, 200 + value);
+            telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
+        } else {
+            returnToBeginning(id);
+        }
+    }
+
     private void acceptReport(Long id, Update update){
+        String text = update.message().text();
         PhotoSize[] photoSizes = update.message().photo();
         if (photoSizes == null){
-            telegramBotService.sendMessage(id, "Пришлите фото питомца с текстом отчета.", ParseMode.Markdown);
+            telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
         }else {
             PhotoSize photoSize = photoSizes[photoSizes.length - 1];
             GetFileResponse getFileResponse = telegramBot.execute(new GetFile(photoSize.fileId()));
             if (getFileResponse.isOk()){
                 try {
                     String extension = StringUtils.getFilenameExtension(getFileResponse.file().filePath());
-                    byte[] data = telegramBot.getFileContent(getFileResponse.file());
+                    byte[] photo = telegramBot.getFileContent(getFileResponse.file());
                     if (matrix.get(id)%2 == 0){
-                        DogReport dogReport = new DogReport(id, LocalDate.now(), data, update.message().text());
-                        dogReportService.createDogReport(dogReport);
+                        dogReportService.createDogReport(new DogReport(id, LocalDate.now(), photo, text));
+                    }else {
+                        catReportService.createCatReport(new CatReport(id, LocalDate.now(), photo, text));
+                    }
+                    if (Objects.nonNull(photo)&&Objects.nonNull(text)){
                         telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
                         returnToBeginning(id);
                     }else {
-                        CatReport catReport = new CatReport(id, LocalDate.now(), data, update.message().text());
-                        catReportService.createCatReport(catReport);
-                        telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
-                        returnToBeginning(id);
+                        telegramBotService.sendMessage(id, "Пришлите текст.", ParseMode.Markdown);
                     }
                 }catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }
+            }
+        }
+    }
+
+    private void updateReport(Long id, String text){
+        if (matrix.get(id) % 2 == 0) {
+            Optional<DogReport> report = dogReportService.findByAdoptionAndDate(id, LocalDate.now());
+            if (report.isPresent()) {
+                DogReport dogReport = report.get();
+                dogReport.setText(text);
+                dogReportService.updateDogReport(dogReport);
+                telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
+                matrix.put(id, 0);
+            } else {
+                telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
+            }
+        } else {
+            Optional<CatReport> report = catReportService.findByAdoptionAndDate(id, LocalDate.now());
+            if (report.isPresent()) {
+                CatReport catReport = report.get();
+                catReport.setText(text);
+                catReportService.updateCatReport(catReport);
+                telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
+                matrix.put(id, 0);
+            } else {
+                telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
             }
         }
     }

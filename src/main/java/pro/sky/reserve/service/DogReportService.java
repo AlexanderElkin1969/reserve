@@ -2,11 +2,13 @@ package pro.sky.reserve.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pro.sky.reserve.entity.CatReport;
 import pro.sky.reserve.entity.DogReport;
 import pro.sky.reserve.repository.DogReportRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DogReportService {
@@ -37,8 +39,12 @@ public class DogReportService {
         return dogReport;
     }
 
+    public Optional<DogReport> findByAdoptionAndDate(Long adoptionId, LocalDate reportDate){
+        return dogReportRepository.findByAdoptionAndDate(adoptionId, reportDate);
+    }
+
     public List<DogReport> readByDate(LocalDate localDate){
-        return List.copyOf(dogReportRepository.findAllByReportDate(localDate));
+        return List.copyOf(dogReportRepository.findAllByDate(localDate));
     }
 
     public List<DogReport> readAllById(Integer id){

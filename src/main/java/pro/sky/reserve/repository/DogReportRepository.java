@@ -6,12 +6,15 @@ import pro.sky.reserve.entity.DogReport;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DogReportRepository extends JpaRepository<DogReport, Integer> {
 
+    Optional<DogReport> findByAdoptionAndDate(Long adoption, LocalDate date);
+
     List<DogReport> findAllById(Integer id);
 
-    List<DogReport> findAllByReportDate(LocalDate localDate);
+    List<DogReport> findAllByDate(LocalDate localDate);
 
 }

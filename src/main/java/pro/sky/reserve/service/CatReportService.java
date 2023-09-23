@@ -7,6 +7,7 @@ import pro.sky.reserve.repository.CatReportRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CatReportService {
@@ -37,8 +38,12 @@ public class CatReportService {
         return catReport;
     }
 
+    public Optional<CatReport> findByAdoptionAndDate(Long adoptionId, LocalDate reportDate){
+        return catReportRepository.findByAdoptionAndDate(adoptionId, reportDate);
+    }
+
     public List<CatReport> readByDate(LocalDate localDate){
-        return List.copyOf(catReportRepository.findAllByReportDate(localDate));
+        return List.copyOf(catReportRepository.findAllByDate(localDate));
     }
 
     public List<CatReport> readAllById(Integer id){
