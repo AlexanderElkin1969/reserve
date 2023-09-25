@@ -11,18 +11,18 @@ public class CatReport{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
 
-    private Long adoption;
+    private Long adoptionId;
 
-    private LocalDate date;
+    private LocalDate reportDate;
 
     @Lob
     private byte[] photo;
 
     String text;
 
-    public CatReport(Long adoption, LocalDate date, byte[] photo, String text) {
-        this.adoption = adoption;
-        this.date = date;
+    public CatReport(Long adoptionId, LocalDate reportDate, byte[] photo, String text) {
+        this.adoptionId = adoptionId;
+        this.reportDate = reportDate;
         this.photo = photo;
         this.text = text;
     }
@@ -34,12 +34,12 @@ public class CatReport{
         return id;
     }
 
-    public Long getAdoption() {
-        return adoption;
+    public Long getAdoptionId() {
+        return adoptionId;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public LocalDate getReportDate() {
+        return reportDate;
     }
 
     public byte[] getPhoto() {
@@ -54,12 +54,12 @@ public class CatReport{
         this.id = id;
     }
 
-    public void setAdoption(Long adoption) {
-        this.adoption = adoption;
+    public void setAdoptionId(Long adoptionId) {
+        this.adoptionId = adoptionId;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setReportDate(LocalDate reportDate) {
+        this.reportDate = reportDate;
     }
 
     public void setPhoto(byte[] photo) {
@@ -75,20 +75,20 @@ public class CatReport{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CatReport catReport = (CatReport) o;
-        return getId() == catReport.getId() && Objects.equals(getAdoption(), catReport.getAdoption());
+        return getId() == catReport.getId() && Objects.equals(getAdoptionId(), catReport.getAdoptionId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getAdoption());
+        return Objects.hash(getId(), getAdoptionId());
     }
 
     @Override
     public String toString() {
         return "CatReport{" +
                 "id=" + id +
-                ", adoption=" + adoption +
-                ", date=" + date +
+                ", adoptionId=" + adoptionId +
+                ", reportDate=" + reportDate +
                 ", text='" + text + '\'' +
                 '}';
     }

@@ -11,10 +11,10 @@ import java.util.Optional;
 @Repository
 public interface CatReportRepository extends JpaRepository<CatReport, Integer> {
 
-    Optional<CatReport> findByAdoptionAndDate(Long adoption, LocalDate date);
+    Optional<CatReport> findByAdoptionIdAndReportDate(Long adoptionId, LocalDate reportDate);
 
-    List<CatReport> findAllById(Integer id);
+    List<CatReport> findAllByAdoptionId(Long adoptionId);
 
-    List<CatReport> findAllByDate(LocalDate localDate);
+    List<CatReport> findAllByReportDate(LocalDate reportDate);
 
 }

@@ -2,7 +2,6 @@ package pro.sky.reserve.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pro.sky.reserve.entity.CatReport;
 import pro.sky.reserve.entity.DogReport;
 import pro.sky.reserve.repository.DogReportRepository;
 
@@ -20,17 +19,19 @@ public class DogReportService {
     }
 
     @Transactional
-    public void createDogReport(DogReport dogReport) {
+    public DogReport createDogReport(DogReport dogReport) {
         dogReportRepository.save(dogReport);
+        return dogReport;
     }
 
-    public DogReport getDogReportById(Integer id) {
+    public DogReport getDogReport(Integer id) {
         return dogReportRepository.findById(id).get();
     }
 
     @Transactional
-    public void updateDogReport(DogReport dogReport) {
+    public DogReport updateDogReport(DogReport dogReport) {
         dogReportRepository.save(dogReport);
+        return dogReport;
     }
 
     public DogReport deleteDogReport(Integer id) {
@@ -39,16 +40,16 @@ public class DogReportService {
         return dogReport;
     }
 
-    public Optional<DogReport> findByAdoptionAndDate(Long adoptionId, LocalDate reportDate){
-        return dogReportRepository.findByAdoptionAndDate(adoptionId, reportDate);
+    public Optional<DogReport> findByAdoptionIdAndReportDate(Long adoptionId, LocalDate reportDate){
+        return dogReportRepository.findByAdoptionIdAndReportDate(adoptionId, reportDate);
     }
 
-    public List<DogReport> readByDate(LocalDate localDate){
-        return List.copyOf(dogReportRepository.findAllByDate(localDate));
+    public List<DogReport> readAllByDate(LocalDate localDate){
+        return List.copyOf(dogReportRepository.findAllByReportDate(localDate));
     }
 
-    public List<DogReport> readAllById(Integer id){
-        return List.copyOf(dogReportRepository.findAllById(id));
+    public List<DogReport> readAllByAdoptionId(Long adoptionId){
+        return List.copyOf(dogReportRepository.findAllByAdoptionId(adoptionId));
     }
 
 }

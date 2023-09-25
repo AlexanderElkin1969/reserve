@@ -19,17 +19,19 @@ public class CatReportService {
     }
 
     @Transactional
-    public void createCatReport(CatReport catReport) {
+    public CatReport createCatReport(CatReport catReport) {
         catReportRepository.save(catReport);
+        return catReport;
     }
 
-    public CatReport getCatReportById(Integer id) {
+    public CatReport getCatReport(Integer id) {
         return catReportRepository.findById(id).get();
     }
 
     @Transactional
-    public void updateCatReport(CatReport catReport) {
+    public CatReport updateCatReport(CatReport catReport) {
         catReportRepository.save(catReport);
+        return catReport;
     }
 
     public CatReport deleteCatReport(Integer id) {
@@ -38,17 +40,16 @@ public class CatReportService {
         return catReport;
     }
 
-    public Optional<CatReport> findByAdoptionAndDate(Long adoptionId, LocalDate reportDate){
-        return catReportRepository.findByAdoptionAndDate(adoptionId, reportDate);
+    public Optional<CatReport> findByAdoptionIdAndReportDate(Long adoptionId, LocalDate reportDate){
+        return catReportRepository.findByAdoptionIdAndReportDate(adoptionId, reportDate);
     }
 
-    public List<CatReport> readByDate(LocalDate localDate){
-        return List.copyOf(catReportRepository.findAllByDate(localDate));
+    public List<CatReport> readAllByDate(LocalDate localDate){
+        return List.copyOf(catReportRepository.findAllByReportDate(localDate));
     }
 
-    public List<CatReport> readAllById(Integer id){
-        return List.copyOf(catReportRepository.findAllById(id));
+    public List<CatReport> readAllByAdoptionId(Long adoptionId){
+        return List.copyOf(catReportRepository.findAllByAdoptionId(adoptionId));
     }
-
 
 }

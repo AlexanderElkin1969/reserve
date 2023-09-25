@@ -7,7 +7,6 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.response.GetFileResponse;
-import liquibase.pro.packaged.O;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,10 +118,10 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                                     }
                                 }
                             } else {
-                                updateReport(id, text);
+                                acceptTextReport(id, text);
                             }
                         }else if (value > 200){
-                            acceptReport(id, update);
+                            acceptPhotoReport(id, update);
                         }
                     } else {
                         if ((!catShelterVolunteersGroupChatId.equals(id)) && (!dogShelterVolunteersGroupChatId.equals(id))) {
@@ -207,13 +206,13 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
             telegramBotService.sendMessage(id, REPORT_FORM, ParseMode.Markdown);
         } else if (actionNumber == 2) {
             matrix.put(id, 200 + value);
-            telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
+            telegramBotService.sendMessage(id, "Пришлите текст отчета.", ParseMode.Markdown);
         } else {
             returnToBeginning(id);
         }
     }
 
-    private void acceptReport(Long id, Update update){
+    private void acceptPhotoReport(Long id, Update update){
         String text = update.message().text();
         PhotoSize[] photoSizes = update.message().photo();
         if (photoSizes == null){
@@ -226,13 +225,29 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                     String extension = StringUtils.getFilenameExtension(getFileResponse.file().filePath());
                     byte[] photo = telegramBot.getFileContent(getFileResponse.file());
                     if (matrix.get(id)%2 == 0){
-                        dogReportService.createDogReport(new DogReport(id, LocalDate.now(), photo, text));
+                        Optional<DogReport> report = dogReportService.findByAdoptionIdAndReportDate(id, LocalDate.now());
+                        if (report.isPresent()) {
+                            DogReport dogReport = report.get();
+                            text = dogReport.getText();
+                            dogReport.setPhoto(photo);
+                            DogReport updateReport = dogReportService.updateDogReport(dogReport);
+                        }else {
+                            dogReportService.createDogReport(new DogReport(id, LocalDate.now(), photo, text));
+                        }
                     }else {
-                        catReportService.createCatReport(new CatReport(id, LocalDate.now(), photo, text));
+                        Optional<CatReport> report = catReportService.findByAdoptionIdAndReportDate(id, LocalDate.now());
+                        if (report.isPresent()) {
+                            CatReport catReport = report.get();
+                            text = catReport.getText();
+                            catReport.setPhoto(photo);
+                            CatReport updateReport = catReportService.updateCatReport(catReport);
+                        }else {
+                            catReportService.createCatReport(new CatReport(id, LocalDate.now(), photo, text));
+                        }
                     }
                     if (Objects.nonNull(photo)&&Objects.nonNull(text)){
                         telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
-                        returnToBeginning(id);
+                        matrix.put(id, 0);
                     }else {
                         telegramBotService.sendMessage(id, "Пришлите текст.", ParseMode.Markdown);
                     }
@@ -243,9 +258,9 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    private void updateReport(Long id, String text){
+    private void acceptTextReport(Long id, String text){
         if (matrix.get(id) % 2 == 0) {
-            Optional<DogReport> report = dogReportService.findByAdoptionAndDate(id, LocalDate.now());
+            Optional<DogReport> report = dogReportService.findByAdoptionIdAndReportDate(id, LocalDate.now());
             if (report.isPresent()) {
                 DogReport dogReport = report.get();
                 dogReport.setText(text);
@@ -253,10 +268,11 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                 telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
                 matrix.put(id, 0);
             } else {
+                dogReportService.createDogReport(new DogReport(id, LocalDate.now(), null, text));
                 telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
             }
         } else {
-            Optional<CatReport> report = catReportService.findByAdoptionAndDate(id, LocalDate.now());
+            Optional<CatReport> report = catReportService.findByAdoptionIdAndReportDate(id, LocalDate.now());
             if (report.isPresent()) {
                 CatReport catReport = report.get();
                 catReport.setText(text);
@@ -264,6 +280,7 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
                 telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
                 matrix.put(id, 0);
             } else {
+                catReportService.createCatReport(new CatReport(id, LocalDate.now(), null, text));
                 telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
             }
         }
