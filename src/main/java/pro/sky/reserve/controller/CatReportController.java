@@ -39,7 +39,7 @@ public class CatReportController {
         return ResponseEntity.ok(catReportService.deleteCatReport(reportId));
     }
 
-    @GetMapping("/adoptionId/{adoptionId)}")
+    @GetMapping("/adoptionId/{adoptionId}")
     public ResponseEntity<List<CatReport>> getAllCatReports(Long adoptionId) {
         return ResponseEntity.ok(catReportService.readAllByAdoptionId(adoptionId));
     }

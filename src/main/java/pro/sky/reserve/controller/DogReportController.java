@@ -39,7 +39,7 @@ public class DogReportController {
         return ResponseEntity.ok(dogReportService.deleteDogReport(reportId));
     }
 
-    @GetMapping("/adoptionId/{adoptionId)}")
+    @GetMapping("/adoptionId/{adoptionId}")
     public ResponseEntity<List<DogReport>> getAllDogReports(Long adoptionId) {
         return ResponseEntity.ok(dogReportService.readAllByAdoptionId(adoptionId));
     }

@@ -264,11 +264,11 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
             if (report.isPresent()) {
                 DogReport dogReport = report.get();
                 dogReport.setText(text);
-                dogReportService.updateDogReport(dogReport);
+                DogReport updateReport = dogReportService.updateDogReport(dogReport);
                 telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
                 matrix.put(id, 0);
             } else {
-                dogReportService.createDogReport(new DogReport(id, LocalDate.now(), null, text));
+                DogReport updateReport =  dogReportService.createDogReport(new DogReport(id, LocalDate.now(), null, text));
                 telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
             }
         } else {
@@ -276,11 +276,11 @@ public class ReserveTelegramBotUpdatesListener implements UpdatesListener {
             if (report.isPresent()) {
                 CatReport catReport = report.get();
                 catReport.setText(text);
-                catReportService.updateCatReport(catReport);
+                CatReport updateReport = catReportService.updateCatReport(catReport);
                 telegramBotService.sendMessage(id, "Ваш отчет успешно принят. Хорошего дня.", ParseMode.Markdown);
                 matrix.put(id, 0);
             } else {
-                catReportService.createCatReport(new CatReport(id, LocalDate.now(), null, text));
+                CatReport updateReport = catReportService.createCatReport(new CatReport(id, LocalDate.now(), null, text));
                 telegramBotService.sendMessage(id, "Пришлите фото питомца.", ParseMode.Markdown);
             }
         }
